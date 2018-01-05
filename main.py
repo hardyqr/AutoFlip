@@ -14,9 +14,8 @@ import pyscreenshot as ImageGrab
 import numpy as np
 from termcolor import colored
 
-from data.digits.generater import clipper
 from digit_recognizer import CNN
-  
+from digit_detector import *
 
 ''' digit recognizer to obtain reward '''
 digit_cnn = torch.load("digit_recognizer.pkl")
@@ -29,26 +28,34 @@ k = PyKeyboard()
 x_dim, y_dim = m.screen_size()
 #m.click(x_dim/2, y_dim/2, 1)
 
-while(True):
-    im=ImageGrab.grab(bbox=(0,0,x_dim/2,y_dim))
-    digit_img=clipper()
-    pil_img = np.array(digit_img.resize((32, 32), PIL.Image.NEAREST))
-    #pil_img.show()
-    #print(pil_img.shape)
-    transform = transforms.Compose([transforms.ToTensor()])
-    #x_var = torch.from_numpy(pil_img)
-    x_var = transform(pil_img).resize_(1,4,32,32)
-    x_var = Variable(x_var)
-    loader = torch.utils.data.DataLoader(dataset=pil_img, batch_size=1)
-    scores = digit_cnn(x_var)
-    scores_cp = (scores.data).cpu().numpy()
-    pred = colored(str(scores_cp.argmax()), 'red')
 
-    print('current score: '+pred)
-    input('Press \'enter\' to continue...')
-    #m.press(x_dim/3, y_dim/3)
+
+if __name__ == '__main__':
+    
+    while(True):
+        gray2,contours,game_rgb = segment_digitGray_and_gameRGB(get_screenshot())
+        bbox,digits=get_bbox(contours,gray2)
+        score=0
+        for i in range(len(bbox)):
+            im = PIL.Image.fromarray(digits[len(bbox)-1-i])
+            pil_img = np.array(im.resize((32, 32), PIL.Image.NEAREST))
+            #pil_img.show()
+            #print(pil_img.shape)
+            pil_img = np.expand_dims(pil_img, axis=0)
+            transform = transforms.Compose([transforms.ToTensor()])
+            #x_var = torch.from_numpy(pil_img)
+            x_var = Variable(transform(pil_img).resize_(1,1,32,32))
+            loader = torch.utils.data.DataLoader(dataset=pil_img, batch_size=1)
+            scores = digit_cnn(x_var)
+            scores_cp = (scores.data).cpu().numpy()
+            pred = colored(str(scores_cp.argmax()), 'red')
+            print('current digit: '+pred)
+            score+=int(scores_cp.argmax())*pow(10,i)
+
+        pred = colored(str(score), 'red')
+        print('current score: '+pred)  
+        input('Press \'enter\' to continue...')
+    
     
     t = 0.4
     #time.sleep(t)
-    #m.release(x_dim/3, y_dim/3)
-
