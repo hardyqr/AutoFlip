@@ -35,8 +35,9 @@ if __name__ == '__main__':
     while(True):
         gray2,contours,game_rgb = segment_digitGray_and_gameRGB(get_screenshot())
         bbox,digits=get_bbox(contours,gray2)
-        score=0
+        score=-1
         for i in range(len(bbox)):
+            if(i==0):score=0
             im = PIL.Image.fromarray(digits[len(bbox)-1-i])
             pil_img = np.array(im.resize((32, 32), PIL.Image.NEAREST))
             #pil_img.show()
@@ -48,12 +49,19 @@ if __name__ == '__main__':
             loader = torch.utils.data.DataLoader(dataset=pil_img, batch_size=1)
             scores = digit_cnn(x_var)
             scores_cp = (scores.data).cpu().numpy()
-            pred = colored(str(scores_cp.argmax()), 'red')
-            print('current digit: '+pred)
+            #pred = colored(str(scores_cp.argmax()), 'red')
+            #print('current digit: '+pred)
+            prev_score = score
             score+=int(scores_cp.argmax())*pow(10,i)
 
-        pred = colored(str(score), 'red')
-        print('current score: '+pred)  
+        if(score==-1): # fail
+            print(colored('You lost.'),'red')
+        else: # game continues
+            pred = colored(str(score), 'red')
+            print('current score: '+pred)
+            delta = score - prev_score
+            print('delta(score): '+delta)
+
         input('Press \'enter\' to continue...')
     
     
