@@ -20,7 +20,7 @@ from pymouse import PyMouse
 import pyscreenshot as ImageGrab
 from termcolor import colored
 
-from data.digits.generater import clipper
+#from data.digits.generater import clipper
 from utils import *
 
 
@@ -44,8 +44,9 @@ def auto_train(model, loss_fn, optimizer):
             optimizer.zero_grad()
             # x_var: digit_img, y_var: label
             pil_img = np.array(digit_img.resize((32, 32), PIL.Image.NEAREST))
+            pil_img = np.expand_dims(pil_img, axis=0)
             transform = transforms.Compose([transforms.ToTensor()])
-            x_var = transform(pil_img).resize_(1,4,32,32)
+            x_var = transform(pil_img).resize_(1,1,32,32)
             x_var = Variable(x_var)
             loader = torch.utils.data.DataLoader(dataset=pil_img, batch_size=1)
             scores = None
@@ -120,7 +121,7 @@ class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
         self.layer1 = nn.Sequential(
-                nn.Conv2d(4,32,kernel_size = 3, padding = 1),
+                nn.Conv2d(1,32,kernel_size = 3, padding = 1),
                 nn.BatchNorm2d(32),
                 nn.ReLU())
         self.layer2 = nn.Sequential(
@@ -178,7 +179,7 @@ if __name__ == '__main__':
     print('start training...')
     if(input('Press \'enter\' to auto train, else not to: ')==''):
         auto_train(cnn, loss_fn, optimizer)
-    train(cnn, loss_fn, optimizer)
+    #train(cnn, loss_fn, optimizer)
     
     if(int(input('Enter \'1\' to save the model, others to quit: '))==1):
         torch.save(cnn, "digit_recognizer.pkl")
