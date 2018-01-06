@@ -16,12 +16,9 @@ import math
 import random
 import PIL.Image
 import cv2
-from pymouse import PyMouse
-import pyscreenshot as ImageGrab
 from termcolor import colored
 
-#from data.digits.generater import clipper
-from utils import *
+#from utils import *
 
 
 ''' Hyper pamrams '''

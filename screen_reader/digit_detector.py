@@ -4,6 +4,9 @@
 import sys
 import numpy as np
 import cv2
+import torch
+import torchvision.transforms as transforms
+from torch.autograd import Variable
 #from matplotlib import pyplot as plt
 import PIL.Image
 from scipy.misc import toimage
@@ -12,6 +15,7 @@ import random
 import os
 from operator import itemgetter
 
+#from digit_recognizer import CNN
 
 def drawer(bbox, gray2):
     # draw 
@@ -26,8 +30,6 @@ def get_bbox(contours,gray2):
     count = 0
     for cnt in contours:
         if cv2.contourArea(cnt) < 1000: continue # too small, not number
-        #mask = np.zeros(gray2.shape,np.uint8)
-        #cv2.drawContours(mask,[cnt],0,255,-1)
         [x,y,w,h] = cv2.boundingRect(cnt)
         #cv2.imshow('Features', gray2)
         keep = [x,y,w,h]
@@ -39,7 +41,7 @@ def get_bbox(contours,gray2):
         if(to_keep):
             count+=1
             bbox.append(keep)
-            print('bbox got: ', keep)
+            #print('bbox got: ', keep)
             
             # save training samples, uncoment when using it
             #gray2_copy=gray2.copy()
@@ -57,8 +59,8 @@ def get_bbox(contours,gray2):
 
 def get_screenshot():
     os.system('adb shell screencap -p /sdcard/state.png')
-    os.system('adb pull /sdcard/state.png ./data/state.png')
-    im = cv2.imread('./data/state.png')
+    os.system('adb pull /sdcard/state.png ./screen_reader/data/state.png')
+    im = cv2.imread('./screen_reader/data/state.png')
     return im
 
 
@@ -85,6 +87,30 @@ def segment_digitGray_and_gameRGB(im):
     
     cv2.destroyAllWindows()
     return gray2,contours,game_rgb
+
+
+def get_score_and_gameRGB():
+
+    digit_cnn = torch.load("./screen_reader/digit_recognizer.pkl")
+    if(torch.cuda.is_available()):digit_cnn.cuda()
+
+    im = get_screenshot()
+    gray2,contours,game_rgb = segment_digitGray_and_gameRGB(im)
+    bbox,digits=get_bbox(contours,gray2)
+    if(len(bbox)==0):return -1,game_rgb # no bbox, game lost
+    score=0
+    for i in range(len(bbox)):
+        im = PIL.Image.fromarray(digits[len(bbox)-1-i])
+        pil_img = np.array(im.resize((32, 32), PIL.Image.NEAREST))
+        pil_img = np.expand_dims(pil_img, axis=0)
+        transform = transforms.Compose([transforms.ToTensor()])
+        x_var = Variable(transform(pil_img).resize_(1,1,32,32))
+        scores = digit_cnn(x_var)
+        scores_cp = (scores.data).cpu().numpy()
+        #pred = colored(str(scores_cp.argmax()), 'red')
+        #print('current digit: '+pred)
+        score+=int(scores_cp.argmax())*pow(10,i)
+    return score,game_rgb
 
 
 def gen_train():
