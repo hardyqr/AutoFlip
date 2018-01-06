@@ -1,7 +1,6 @@
 # Freddy @JinZhouWangBa, Tongji, Shanghai, China
 # Jan 3, 2018
 
-import time
 import torch 
 import torch.nn as nn
 import torchvision.datasets as dsets
@@ -11,6 +10,7 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import sys
+import time
 import os
 import math
 import random

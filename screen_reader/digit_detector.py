@@ -10,7 +10,6 @@ from torch.autograd import Variable
 #from matplotlib import pyplot as plt
 import PIL.Image
 from scipy.misc import toimage
-import pyscreenshot as ImageGrab
 import random
 import os
 from operator import itemgetter
