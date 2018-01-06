@@ -1,21 +1,7 @@
-# Freddy @JinZhouWangBa, Tongji, Shanghai, China
-# Jan 3, 2018
+# Freddy @ChuanDaHuaYuan, Chengdu, China
+# Jan 6, 2018
 
-import time
-import PIL.Image
-import torch
-import torch.nn as nn
-import torchvision.datasets as dsets
-import torchvision.transforms as transforms
-from torch.autograd import Variable
-from pymouse import PyMouse
-from pykeyboard import PyKeyboard
-import pyscreenshot as ImageGrab
-import numpy as np
 from termcolor import colored
-import math
-from scipy.misc import toimage
-import os
 
 from screen_reader.digit_detector import get_score_and_gameRGB
 from screen_reader.digit_recognizer import CNN
